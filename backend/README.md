@@ -26,3 +26,11 @@ This backend replaces the old `frontend/app/api/**` Next.js route handlers.
 - Timezone logic is enforced for `Africa/Algiers` date/slot behavior.
 - Admin auth is JWT bearer (`/api/auth/login`, `/api/auth/session`, `/api/auth/logout`).
 - Video files are served from `VIDEOS_DIR` and support HTTP byte ranges for playback.
+
+## Railway
+
+- Railway backend URL:
+  - `https://server-production-1713.up.railway.app`
+- Recommended env:
+  - `FRONTEND_ORIGIN=https://cliniquemrabeutappoi.vercel.app`
+  - `DJANGO_ALLOWED_HOSTS=.railway.app,server-production-1713.up.railway.app`

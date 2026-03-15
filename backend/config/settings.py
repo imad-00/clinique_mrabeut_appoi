@@ -53,8 +53,8 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    "django.middleware.security.SecurityMiddleware",
     "corsheaders.middleware.CorsMiddleware",
+    "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -83,10 +83,19 @@ WSGI_APPLICATION = "config.wsgi.application"
 ASGI_APPLICATION = "config.asgi.application"
 
 
+def _get_database_url() -> str | None:
+    return (
+        os.getenv("DATABASE_URL")
+        or os.getenv("MYSQL_URL")
+        or os.getenv("MYSQL_PRIVATE_URL")
+        or os.getenv("MYSQL_PUBLIC_URL")
+    )
+
+
 def _db_config_from_url() -> dict:
-    database_url = os.getenv("DATABASE_URL")
+    database_url = _get_database_url()
     if not database_url:
-        raise RuntimeError("DATABASE_URL is required")
+        raise RuntimeError("DATABASE_URL or MYSQL_URL is required")
 
     parsed = urlparse(database_url)
     if parsed.scheme not in {"mysql", "mariadb"}:
@@ -128,9 +137,19 @@ VIDEOS_DIR = Path(os.getenv("VIDEOS_DIR", MEDIA_ROOT / "videos"))
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-FRONTEND_ORIGINS = [o.strip() for o in os.getenv("FRONTEND_ORIGIN", "http://localhost:3000").split(",") if o.strip()]
+FRONTEND_ORIGINS = [
+    o.strip()
+    for o in os.getenv(
+        "FRONTEND_ORIGIN",
+        "http://localhost:3000,https://cliniquemrabeutappoi.vercel.app",
+    ).split(",")
+    if o.strip()
+]
 CORS_ALLOWED_ORIGINS = FRONTEND_ORIGINS
 CORS_ALLOW_CREDENTIALS = False
+CSRF_TRUSTED_ORIGINS = FRONTEND_ORIGINS
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+USE_X_FORWARDED_HOST = True
 CORS_ALLOW_HEADERS = [
     "accept",
     "accept-encoding",
@@ -152,5 +171,5 @@ REST_FRAMEWORK = {
 }
 
 JWT_SECRET = os.getenv("JWT_SECRET", SECRET_KEY)
-JWT_EXPIRES_MINUTES = int(os.getenv("JWT_EXPIRES_MINUTES", "720"))
+JWT_EXPIRES_MINUTES = int(os.getenv("JWT_EXPIRES_MINUTES", "1440"))
 MAX_VIDEO_MB = int(os.getenv("MAX_VIDEO_MB", "100"))
